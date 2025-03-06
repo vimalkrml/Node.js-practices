@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modern Note App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      #app {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        width: 400px;
+      }
+      header {
+        font-size: 24px;
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+      }
+      h1 {
+        color: #e74c3c;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+      input[type="text"] {
+        width: calc(100% - 22px);
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button[type="submit"] {
+        background-color: #333;
+        color: white;
+      }
+      button[type="submit"]:hover {
+        background-color: #555;
+      }
+      .note {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        margin-top: 10px;
+      }
+      .note p {
+        margin: 0;
+        flex-grow: 1;
+        color: #333;
+      }
+      .delete-button {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .delete-button:hover {
+        background-color: #c0392b;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>{{ title }}</header>
+      <main>
+        <h1>Let's add a new note</h1>
+        <input
+          id="newNotes"
+          type="text"
+          placeholder="Enter your note here..."
+        />
+        <button type="submit" @click="addNewNote()">Add</button>
+        <div v-for="note in notes" :id="note.id" class="note">
+          <p>{{ note.description }}</p>
+          <button class="delete-button" @click="deleteNotes(note.id)">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </main>
+    </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"
+      integrity="sha512-uMtXmF28A2Ab/JJO2t/vYhlaa/3ahUOgj1Zf27M5rOo8/+fcTUVH0/E0ll68njmjrLqOBjXM3V9NiPFL5ywWPQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script type="module">
+      import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+      const API_URL = "http://localhost:4001/";
+      createApp({
+        data() {
+          return {
+            title: "Todo App",
+            notes: [],
+          };
+        },
+        methods: {
+          async refreshData() {
+            axios.get(API_URL + "api/todoappdb/GetNotes").then((response) => {
+              this.notes = response.data;
+            });
+          },
+          async addNewNote() {
+            var newNotes = document.getElementById("newNotes").value;
+            const formData = new FormData();
+            formData.append("newNotes", newNotes);
+            console.log(formData);
+
+            axios
+              .post(API_URL + "api/todoappdb/AddNotes", formData)
+              .then((response) => {
+                this.refreshData();
+                alert(response.data);
+                document.getElementById("newNotes").value = "";
+              });
+          },
+          async deleteNotes(id) {
+            axios
+              .delete(API_URL + "api/todoappdb/DeleteNotes?id=" + id)
+              .then((response) => {
+                this.refreshData();
+                alert(response.data);
+              });
+          },
+        },
+        mounted() {
+          this.refreshData();
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>
